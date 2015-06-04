@@ -33,7 +33,7 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
   @Override
   public String getDomain()
   {
-    return "com.esri.ges.processor";
+    return "com.esri.geoevent.processor";
   }
 
   @Override
