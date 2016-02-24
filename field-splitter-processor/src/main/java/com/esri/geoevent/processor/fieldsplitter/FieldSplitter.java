@@ -120,7 +120,7 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
 
   private void splitGeoEvent(GeoEvent sourceGeoEvent) throws MessagingException
   {    
-    GeoEvent geoEventOut = (GeoEvent) sourceGeoEvent.clone(null);
+    GeoEvent geoEventOut = (GeoEvent) sourceGeoEvent.clone();
     try
     {
       Field field = sourceGeoEvent.getField(new FieldExpression(fieldToSplit));
@@ -224,7 +224,7 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
       if (geoEventProducer == null)
         return;
       
-      GeoEvent geoEventOut = (GeoEvent) sourceGeoEvent.clone(null);
+      GeoEvent geoEventOut = (GeoEvent) sourceGeoEvent.clone();
       try
       {
         Field field = sourceGeoEvent.getField(new FieldExpression(fieldToSplit));
