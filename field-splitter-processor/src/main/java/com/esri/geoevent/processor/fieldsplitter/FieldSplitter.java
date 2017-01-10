@@ -227,20 +227,24 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
       GeoEvent geoEventOut = (GeoEvent) sourceGeoEvent.clone();
       try
       {
+        String[] fieldValues;
         Field field = sourceGeoEvent.getField(new FieldExpression(fieldToSplit));
         if (field == null)
         {
-          return;
+          fieldValues = new String[0];
+          fieldValues[0] = null;
         }
         String fieldValueToSplit = (String) field.getValue();
         if (fieldValueToSplit == null)
         {
-          return;
+          fieldValues = new String[0];
+          fieldValues[0] = null;
         }
-        String[] fieldValues = fieldValueToSplit.split(fieldSplitter);
+        fieldValues = fieldValueToSplit.split(fieldSplitter);
         if (fieldValues == null)
         {
-          return;
+          fieldValues = new String[0];
+          fieldValues[0] = null;
         }
         for (String value : fieldValues)
         {
