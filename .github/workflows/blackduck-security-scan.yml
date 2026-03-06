@@ -1,0 +1,136 @@
+name: Black Duck Binary Analysis (Protecode SC)
+
+on:
+    push:
+        branches: [master]
+    pull_request:
+        branches: [master]
+    schedule:
+        # Run approximately every 360 hours (~15 days) at 06:00 UTC
+        - cron: "0 6 */15 * *"
+    workflow_dispatch:
+
+env:
+    PROTECODE_SC_URL: https://protecode-sc.esri.com
+    # Group: PS - GeoEvent - Addins
+    PROTECODE_GROUP_ID: "453"
+
+jobs:
+    build-and-scan:
+        name: Build & Submit to Black Duck
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up JDK 8
+              uses: actions/setup-java@v4
+              with:
+                  java-version: "8"
+                  distribution: "temurin"
+                  cache: "maven"
+
+            - name: Build with Maven
+              run: mvn clean package -B -DskipTests
+
+            - name: Locate built JAR
+              id: find-jar
+              run: |
+                  JAR_PATH=$(find field-splitter-processor/target -name "*.jar" -not -name "*-sources*" -not -name "*-javadoc*" | head -1)
+                  JAR_NAME=$(basename "$JAR_PATH")
+                  echo "jar_path=$JAR_PATH" >> "$GITHUB_OUTPUT"
+                  echo "jar_name=$JAR_NAME" >> "$GITHUB_OUTPUT"
+                  echo "Found JAR: $JAR_PATH"
+
+            - name: Upload JAR to Protecode SC for scanning
+              id: upload-scan
+              env:
+                  PROTECODE_API_KEY: ${{ secrets.PROTECODE_API_KEY }}
+              run: |
+                  echo "Uploading ${{ steps.find-jar.outputs.jar_name }} to Protecode SC..."
+
+                  RESPONSE=$(curl -s -w "\n%{http_code}" \
+                    -X PUT \
+                    -H "Authorization: Bearer ${PROTECODE_API_KEY}" \
+                    -H "Group: ${PROTECODE_GROUP_ID}" \
+                    -H "Content-Type: application/octet-stream" \
+                    --data-binary @"${{ steps.find-jar.outputs.jar_path }}" \
+                    "${PROTECODE_SC_URL}/api/upload/${{ steps.find-jar.outputs.jar_name }}")
+
+                  HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+                  BODY=$(echo "$RESPONSE" | sed '$d')
+
+                  if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+                    echo "::error::Protecode SC upload failed with HTTP $HTTP_CODE"
+                    echo "$BODY"
+                    exit 1
+                  fi
+
+                  PRODUCT_ID=$(echo "$BODY" | jq -r '.results.product_id // .product_id // empty')
+                  if [ -z "$PRODUCT_ID" ]; then
+                    echo "::warning::Could not extract product_id from response. Full response:"
+                    echo "$BODY" | jq .
+                  else
+                    echo "product_id=$PRODUCT_ID" >> "$GITHUB_OUTPUT"
+                    echo "Scan initiated — Product ID: $PRODUCT_ID"
+                    echo "View results at: ${PROTECODE_SC_URL}/#/product/${PRODUCT_ID}/"
+                  fi
+
+            - name: Poll for scan completion
+              if: steps.upload-scan.outputs.product_id != ''
+              env:
+                  PROTECODE_API_KEY: ${{ secrets.PROTECODE_API_KEY }}
+                  PRODUCT_ID: ${{ steps.upload-scan.outputs.product_id }}
+              run: |
+                  echo "Waiting for scan to complete (Product ID: ${PRODUCT_ID})..."
+
+                  MAX_ATTEMPTS=60
+                  SLEEP_SECONDS=30
+                  ATTEMPT=0
+
+                  while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+                    ATTEMPT=$((ATTEMPT + 1))
+
+                    RESULT=$(curl -s \
+                      -H "Authorization: Bearer ${PROTECODE_API_KEY}" \
+                      "${PROTECODE_SC_URL}/api/product/${PRODUCT_ID}/")
+
+                    STATUS=$(echo "$RESULT" | jq -r '.results.status // "unknown"')
+                    echo "Attempt ${ATTEMPT}/${MAX_ATTEMPTS} — Status: ${STATUS}"
+
+                    if [ "$STATUS" = "R" ]; then
+                      echo ""
+                      echo "===== Scan Complete ====="
+
+                      VULN_COUNT=$(echo "$RESULT" | jq '[.results.components[]?.vulns[]? | select(.exact == true and (.vuln.fix_version != null or .vuln.cvss3_score != null))] | length')
+                      echo "Vulnerabilities found: ${VULN_COUNT}"
+                      echo "Full report: ${PROTECODE_SC_URL}/#/product/${PRODUCT_ID}/"
+
+                      # Output summary for GitHub Actions job summary
+                      echo "## Black Duck Binary Analysis Results" >> "$GITHUB_STEP_SUMMARY"
+                      echo "- **Product ID:** ${PRODUCT_ID}" >> "$GITHUB_STEP_SUMMARY"
+                      echo "- **Status:** Complete" >> "$GITHUB_STEP_SUMMARY"
+                      echo "- **Vulnerabilities:** ${VULN_COUNT}" >> "$GITHUB_STEP_SUMMARY"
+                      echo "- **Report:** [View Full Report](${PROTECODE_SC_URL}/#/product/${PRODUCT_ID}/)" >> "$GITHUB_STEP_SUMMARY"
+
+                      exit 0
+                    elif [ "$STATUS" = "F" ]; then
+                      echo "::error::Scan failed on Protecode SC."
+                      echo "$RESULT" | jq .
+                      exit 1
+                    fi
+
+                    sleep $SLEEP_SECONDS
+                  done
+
+                  echo "::error::Scan timed out after $((MAX_ATTEMPTS * SLEEP_SECONDS)) seconds."
+                  exit 1
+
+            - name: Upload scan artifact
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: field-splitter-processor-jar
+                  path: ${{ steps.find-jar.outputs.jar_path }}
+                  retention-days: 30
