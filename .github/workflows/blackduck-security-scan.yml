@@ -1,9 +1,9 @@
 name: Black Duck Binary Analysis (Protecode SC)
 
-# DISABLED: REDACTED_INTERNAL_URL is behind the corporate firewall and
+# DISABLED: internal scanner endpoint is behind the corporate firewall and
 # unreachable from GitHub.com public runners. To re-enable, register a
 # self-hosted runner on this GitHub.com repo that has network access to
-# REDACTED_INTERNAL_URL, update runs-on below, and restore the triggers:
+# the scanner endpoint, update runs-on below, and restore the triggers:
 #
 #   push:
 #       branches: [master]
@@ -16,9 +16,8 @@ on:
     workflow_dispatch:
 
 env:
-    PROTECODE_SC_URL: https://REDACTED_INTERNAL_URL
-    # Group: PS - GeoEvent - Addins
-    PROTECODE_GROUP_ID: "453"
+    PROTECODE_SC_URL: ${{ secrets.PROTECODE_SC_URL }}
+    PROTECODE_GROUP_ID: ${{ secrets.PROTECODE_GROUP_ID }}
 
 jobs:
     build-and-scan:
