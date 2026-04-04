@@ -74,9 +74,18 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven.compiler.plugin.version}</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <release>${project.release}</release>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.1.4</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
@@ -84,7 +93,7 @@
                     <version>${maven.bundle.plugin.version}</version>
                     <extensions>true</extensions>
                     <configuration>
-                        <finalName>${project.name}-${revision}</finalName>
+                        <finalName>${project.artifactId}-${revision}</finalName>
                         <instructions>
                             <AGES-Domain>${project.groupId}</AGES-Domain>
                             <Bundle-ContactAddress>${contact.address}</Bundle-ContactAddress>

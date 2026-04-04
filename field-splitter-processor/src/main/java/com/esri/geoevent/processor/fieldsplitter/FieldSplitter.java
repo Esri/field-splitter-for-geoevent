@@ -50,6 +50,8 @@ import com.esri.ges.messaging.MessagingException;
 import com.esri.ges.processor.GeoEventProcessorBase;
 import com.esri.ges.processor.GeoEventProcessorDefinition;
 
+// GeoEvent SDK callback uses java.util.Observable in the EventUpdatable contract.
+@SuppressWarnings("deprecation")
 public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProducer, EventUpdatable
 {
   private static final Log                     log          = LogFactory.getLog(FieldSplitter.class);
