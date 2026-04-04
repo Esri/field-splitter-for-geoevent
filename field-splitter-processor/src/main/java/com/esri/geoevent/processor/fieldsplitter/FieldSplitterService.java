@@ -24,23 +24,22 @@
 
 package com.esri.geoevent.processor.fieldsplitter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.esri.ges.core.component.ComponentException;
+import com.esri.ges.framework.i18n.BundleLogger;
+import com.esri.ges.framework.i18n.BundleLoggerFactory;
 import com.esri.ges.messaging.Messaging;
 import com.esri.ges.processor.GeoEventProcessor;
 import com.esri.ges.processor.GeoEventProcessorServiceBase;
 
 public class FieldSplitterService extends GeoEventProcessorServiceBase
 {
+  private static final BundleLogger LOG = BundleLoggerFactory.getLogger(FieldSplitterService.class);
   private Messaging messaging;
-  final private static Log LOG = LogFactory.getLog(FieldSplitterService.class);
-
+  
   public FieldSplitterService()
   {
     definition = new FieldSplitterDefinition();
-    LOG.info("FieldSplitterService instantiated.");
+    LOG.info(FieldSplitterDefinition.LOG_SERVICE_INSTANTIATED);
   }
 
   @Override

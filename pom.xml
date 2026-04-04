@@ -20,7 +20,10 @@
 
     <properties>
         <revision>10.9.0</revision>
-        <project.release>8</project.release>
+        <project.release>11</project.release>
+        <fieldsplitter.default.fieldToSplit>GeoTagged</fieldsplitter.default.fieldToSplit>
+        <fieldsplitter.default.fieldSplitter>,</fieldsplitter.default.fieldSplitter>
+
         <contact.address>geoevent@esri.com</contact.address>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.propertiesEncoding>ISO-8859-1</project.build.propertiesEncoding>

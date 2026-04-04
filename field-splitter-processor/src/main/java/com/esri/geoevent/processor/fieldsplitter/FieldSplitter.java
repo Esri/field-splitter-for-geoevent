@@ -32,15 +32,14 @@ import java.util.Observable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.Field;
 import com.esri.ges.core.geoevent.FieldException;
 import com.esri.ges.core.geoevent.FieldExpression;
 import com.esri.ges.core.geoevent.GeoEvent;
 import com.esri.ges.core.geoevent.GeoEventPropertyName;
+import com.esri.ges.framework.i18n.BundleLogger;
+import com.esri.ges.framework.i18n.BundleLoggerFactory;
 import com.esri.ges.core.validation.ValidationException;
 import com.esri.ges.messaging.EventDestination;
 import com.esri.ges.messaging.EventUpdatable;
@@ -54,7 +53,7 @@ import com.esri.ges.processor.GeoEventProcessorDefinition;
 @SuppressWarnings("deprecation")
 public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProducer, EventUpdatable
 {
-  private static final Log                     log          = LogFactory.getLog(FieldSplitter.class);
+  private static final BundleLogger            log          = BundleLoggerFactory.getLogger(FieldSplitter.class);
 
   private Messaging                            messaging;
   private GeoEventProducer                     geoEventProducer;
@@ -69,13 +68,13 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
   protected FieldSplitter(GeoEventProcessorDefinition definition) throws ComponentException
   {
     super(definition);
-    log.info("Field Splitter instantiated.");
+    log.info(FieldSplitterDefinition.LOG_PROCESSOR_INSTANTIATED);
   }
 
   public void afterPropertiesSet()
   {
-    fieldToSplit = getProperty("fieldToSplit").getValueAsString();
-    fieldSplitter = getProperty("fieldSplitter").getValueAsString();
+    fieldToSplit = getProperty(FieldSplitterDefinition.PROPERTY_FIELD_TO_SPLIT).getValueAsString();
+    fieldSplitter = getProperty(FieldSplitterDefinition.PROPERTY_FIELD_SPLITTER).getValueAsString();
     
     executor = Executors.newFixedThreadPool(10);
   }
@@ -181,7 +180,7 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
     }
     catch (FieldException e)
     {
-      log.error("Failed to split GeoEvent: " + e.getMessage());
+      log.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, e.getMessage());
     }
   }
   
@@ -291,13 +290,13 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
           }
           catch (MessagingException e)
           {
-            log.error("Failed to split GeoEvent: " + e.getMessage());
+            log.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, e.getMessage());
           }
         }
       }
       catch (FieldException e)
       {
-        log.error("Failed to split GeoEvent: " + e.getMessage());
+        log.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, e.getMessage());
       }
     }
   }
