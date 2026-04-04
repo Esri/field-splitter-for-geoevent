@@ -1,13 +1,18 @@
 name: Black Duck Binary Analysis (Protecode SC)
 
+# DISABLED: protecode-sc.esri.com is behind the corporate firewall and
+# unreachable from GitHub.com public runners. To re-enable, register a
+# self-hosted runner on this GitHub.com repo that has network access to
+# protecode-sc.esri.com, update runs-on below, and restore the triggers:
+#
+#   push:
+#       branches: [master]
+#   pull_request:
+#       branches: [master]
+#   schedule:
+#       - cron: "0 6 */15 * *"
+
 on:
-    push:
-        branches: [master]
-    pull_request:
-        branches: [master]
-    schedule:
-        # Run approximately every 360 hours (~15 days) at 06:00 UTC
-        - cron: "0 6 */15 * *"
     workflow_dispatch:
 
 env:
@@ -18,16 +23,11 @@ env:
 jobs:
     build-and-scan:
         name: Build & Submit to Black Duck
-        runs-on: arc-runner-set-neo-online
+        runs-on: ubuntu-latest
 
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
-
-            - name: Install Esri Root CA
-              run: |
-                  sudo cp ${GITHUB_WORKSPACE}/.github/workflows/EsriRootCA.pem /usr/local/share/ca-certificates/EsriRootCA.crt
-                  sudo update-ca-certificates
 
             - name: Set up JDK 8
               uses: actions/setup-java@v4
@@ -35,10 +35,6 @@ jobs:
                   java-version: "8"
                   distribution: "temurin"
                   cache: "maven"
-
-            - name: Trust Esri Root CA in Java keystore
-              run: |
-                  keytool -import -trustcacerts -cacerts -storepass changeit -noprompt -alias esriroot -file ${GITHUB_WORKSPACE}/.github/workflows/EsriRootCA.pem
 
             - name: Build with Maven
               run: mvn clean package -B -DskipTests
