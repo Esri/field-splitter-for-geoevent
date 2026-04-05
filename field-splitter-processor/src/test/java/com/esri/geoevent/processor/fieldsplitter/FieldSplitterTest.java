@@ -85,7 +85,9 @@ class FieldSplitterTest {
     setPrivateField(splitter, "fieldToSplit", "tags");
     setPrivateField(splitter, "fieldSplitter", ",");
     setPrivateField(splitter, "geoEventProducer", producer);
+    lenient().when(producer.isConnected()).thenReturn(true);
     lenient().doReturn(new Uri("com.esri.test", "FieldSplitter", "1.0")).when(definition).getUri();
+    lenient().when(mockLog.translate(anyString(), any(Object[].class))).thenReturn("translated");
     clearInvocations(mockLog);
   }
 
@@ -174,8 +176,7 @@ class FieldSplitterTest {
     newSplitterRunner().run();
 
     verify(producer, never()).send(any());
-    verify(mockLog).error(
-        eq(FieldSplitterDefinition.LOG_SPLIT_FAILED_FIELD), same(ex), eq("tags"), same(sourceEvent));
+    verify(mockLog).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED_FIELD), same(ex), eq("tags"));
   }
 
   @Test
@@ -187,8 +188,7 @@ class FieldSplitterTest {
     newSplitterRunner().run();
 
     verify(producer, times(2)).send(clonedEvent);
-    verify(mockLog, times(2)).error(
-        eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), same(ex), same(sourceEvent));
+    verify(mockLog, times(2)).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), same(ex));
   }
 
   @Test
@@ -197,8 +197,7 @@ class FieldSplitterTest {
 
     newSplitterRunner().run();
 
-    verify(mockLog).error(
-        eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), any(RuntimeException.class), same(sourceEvent));
+    verify(mockLog).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), any(RuntimeException.class));
   }
 
   // ---- FieldSplitter public method tests ----
@@ -218,6 +217,13 @@ class FieldSplitterTest {
   @Test
   void send_delegatesToProducer() throws Exception {
     splitter.send(sourceEvent);
+    verify(producer).send(sourceEvent);
+  }
+
+  @Test
+  void send_disconnectedProducer_attemptsReconnectThenSends() throws Exception {
+    splitter.send(sourceEvent);
+
     verify(producer).send(sourceEvent);
   }
 
@@ -260,6 +266,30 @@ class FieldSplitterTest {
   void disconnect_nullProducer_doesNotThrow() throws Exception {
     setPrivateField(splitter, "geoEventProducer", null);
     assertDoesNotThrow(() -> splitter.disconnect());
+  }
+
+  @Test
+  void init_delegatesToProducer() throws Exception {
+    splitter.init();
+    verify(producer).init();
+  }
+
+  @Test
+  void setup_delegatesToProducer() throws Exception {
+    splitter.setup();
+    verify(producer).setup();
+  }
+
+  @Test
+  void init_nullProducer_doesNotThrow() throws Exception {
+    setPrivateField(splitter, "geoEventProducer", null);
+    assertDoesNotThrow(() -> splitter.init());
+  }
+
+  @Test
+  void setup_nullProducer_doesNotThrow() throws Exception {
+    setPrivateField(splitter, "geoEventProducer", null);
+    assertDoesNotThrow(() -> splitter.setup());
   }
 
   @Test

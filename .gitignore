@@ -198,6 +198,9 @@ build/
 eggs/
 parts/
 var/
+
+# Local GeoEvent simulation input files
+simulation-data/
 sdist/
 develop-eggs/
 .installed.cfg
