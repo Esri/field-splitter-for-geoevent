@@ -67,6 +67,7 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
   static final String LOG_RESOURCE_LOAD_FAILED = "${" + BUNDLE_SYMBOLIC_NAME + ".RESOURCE_LOAD_FAILED}";
   static final String LOG_PROCESSOR_INSTANTIATED = "${" + BUNDLE_SYMBOLIC_NAME + ".PROCESSOR_INSTANTIATED}";
   static final String LOG_SERVICE_INSTANTIATED = "${" + BUNDLE_SYMBOLIC_NAME + ".SERVICE_INSTANTIATED}";
+  static final String LOG_SPLIT_FAILED_FIELD = "${" + BUNDLE_SYMBOLIC_NAME + ".SPLIT_FAILED_FIELD}";
   static final String LOG_SPLIT_FAILED = "${" + BUNDLE_SYMBOLIC_NAME + ".SPLIT_FAILED}";
   static final String LOG_VALIDATION_FAILED = "${" + BUNDLE_SYMBOLIC_NAME + ".VALIDATION_FAILED}";
 
