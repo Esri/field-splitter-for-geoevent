@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import com.esri.ges.core.component.ComponentException;
 import com.esri.ges.core.geoevent.Field;
@@ -110,7 +112,27 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
   @Override
   public void validate() throws ValidationException {
     super.validate();
+    String configuredFieldToSplit = (fieldToSplit != null)
+        ? fieldToSplit
+        : getProperty(FieldSplitterDefinition.PROPERTY_FIELD_TO_SPLIT).getValueAsString();
+    String configuredFieldSplitter = (fieldSplitter != null)
+        ? fieldSplitter
+        : getProperty(FieldSplitterDefinition.PROPERTY_FIELD_SPLITTER).getValueAsString();
+
     List<String> errors = new ArrayList<>();
+    if (configuredFieldToSplit == null || configuredFieldToSplit.trim().isEmpty()) {
+      errors.add("Property \"fieldToSplit\" is required and cannot be blank.");
+    }
+    if (configuredFieldSplitter == null || configuredFieldSplitter.isEmpty()) {
+      errors.add("Property \"fieldSplitter\" is required and cannot be blank.");
+    } else {
+      try {
+        Pattern.compile(configuredFieldSplitter);
+      } catch (PatternSyntaxException e) {
+        errors.add("Property \"fieldSplitter\" is not a valid regular expression: " + e.getDescription());
+      }
+    }
+
     if (!errors.isEmpty()) {
       StringBuilder sb = new StringBuilder();
       for (String message : errors)

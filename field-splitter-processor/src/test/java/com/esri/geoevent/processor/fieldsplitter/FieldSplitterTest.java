@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,7 @@ import com.esri.ges.core.geoevent.FieldException;
 import com.esri.ges.core.geoevent.FieldExpression;
 import com.esri.ges.core.geoevent.GeoEvent;
 import com.esri.ges.core.geoevent.GeoEventPropertyName;
+import com.esri.ges.core.validation.ValidationException;
 import com.esri.ges.framework.i18n.BundleLogger;
 import com.esri.ges.framework.i18n.BundleLoggerFactory;
 import com.esri.ges.messaging.EventDestination;
@@ -320,6 +322,33 @@ class FieldSplitterTest {
   void shutdown_nullExecutor_doesNotThrow() throws Exception {
     setPrivateField(splitter, "executor", null);
     assertDoesNotThrow(() -> splitter.shutdown());
+  }
+
+  @Test
+  void validate_blankFieldToSplit_throwsValidationException() throws Exception {
+    setPrivateField(splitter, "fieldToSplit", "   ");
+
+    ValidationException ex = assertThrows(ValidationException.class, () -> splitter.validate());
+
+    assertTrue(ex.getMessage().contains("fieldToSplit"));
+  }
+
+  @Test
+  void validate_blankFieldSplitter_throwsValidationException() throws Exception {
+    setPrivateField(splitter, "fieldSplitter", "");
+
+    ValidationException ex = assertThrows(ValidationException.class, () -> splitter.validate());
+
+    assertTrue(ex.getMessage().contains("fieldSplitter"));
+  }
+
+  @Test
+  void validate_invalidRegexFieldSplitter_throwsValidationException() throws Exception {
+    setPrivateField(splitter, "fieldSplitter", "[");
+
+    ValidationException ex = assertThrows(ValidationException.class, () -> splitter.validate());
+
+    assertTrue(ex.getMessage().contains("valid regular expression"));
   }
 
   // ---- helpers ----

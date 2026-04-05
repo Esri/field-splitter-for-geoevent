@@ -7,6 +7,18 @@ ArcGIS GeoEvent Extension Field Splitter Processor for splitting CSV field into 
 ## Features
 * Field Splitter Processor
 
+### Delimiter Behavior
+
+The processor delimiter is passed directly to Java `String.split()`, so it is treated as a regular expression (regex), not a plain literal string.
+
+Examples:
+
+* Split on comma: `,`
+* Split on pipe: `\\|`
+* Split on dot: `\\.`
+
+If you want to split on a regex metacharacter (such as `.`, `|`, `?`, `*`, `+`, `(`, `)`, `[`, `]`), escape it in the delimiter pattern.
+
 ## Instructions
 
 Building the source code:
