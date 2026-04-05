@@ -176,7 +176,7 @@ class FieldSplitterTest {
     newSplitterRunner().run();
 
     verify(producer, never()).send(any());
-    verify(mockLog).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED_FIELD), same(ex), eq("tags"));
+    verify(mockLog).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED_FIELD), same(ex), eq("tags"), same(sourceEvent));
   }
 
   @Test
@@ -188,7 +188,7 @@ class FieldSplitterTest {
     newSplitterRunner().run();
 
     verify(producer, times(2)).send(clonedEvent);
-    verify(mockLog, times(2)).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), same(ex));
+    verify(mockLog, times(2)).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), same(ex), same(clonedEvent));
   }
 
   @Test
@@ -197,7 +197,7 @@ class FieldSplitterTest {
 
     newSplitterRunner().run();
 
-    verify(mockLog).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), any(RuntimeException.class));
+    verify(mockLog).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), any(RuntimeException.class), same(sourceEvent));
   }
 
   // ---- FieldSplitter public method tests ----
@@ -269,15 +269,15 @@ class FieldSplitterTest {
   }
 
   @Test
-  void init_delegatesToProducer() throws Exception {
+  void init_isNoOp() throws Exception {
     splitter.init();
-    verify(producer).init();
+    verifyNoInteractions(producer);
   }
 
   @Test
-  void setup_delegatesToProducer() throws Exception {
+  void setup_isNoOp() throws Exception {
     splitter.setup();
-    verify(producer).setup();
+    verifyNoInteractions(producer);
   }
 
   @Test
