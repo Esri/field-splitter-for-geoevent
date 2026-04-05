@@ -21,6 +21,7 @@
     <properties>
         <revision>10.9.0</revision>
         <project.release>9</project.release>
+        <release.name>Field Splitter Processor</release.name>
         <fieldsplitter.default.fieldToSplit>GeoTagged</fieldsplitter.default.fieldToSplit>
         <fieldsplitter.default.fieldSplitter>,</fieldsplitter.default.fieldSplitter>
 
@@ -35,7 +36,7 @@
 
         <build.time>${maven.build.timestamp}</build.time>
         <gallery.itemId>68238a93e5fd4043ad0bbb501b265566</gallery.itemId>
-        <release.itemId></release.itemId>
+        <release.itemId>e61dffb1b9204ccda9d2499b99b87fe2</release.itemId>
         <compatibility.min>${project.version}</compatibility.min>
         <compatibility.max></compatibility.max>
     </properties>
