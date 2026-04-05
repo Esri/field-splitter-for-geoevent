@@ -63,7 +63,7 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
 
   protected FieldSplitter(GeoEventProcessorDefinition definition) throws ComponentException {
     super(definition);
-    LOG.info(FieldSplitterDefinition.LOG_PROCESSOR_INSTANTIATED);
+    LOG.info("Field Splitter instantiated.");
   }
 
   @Override
@@ -91,7 +91,12 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
         executor.execute(splitter);
       }
     } else {
-      LOG.error(FieldSplitterDefinition.LOG_PROCESSOR_NOT_INITIALIZED);
+      if (LOG.isDebugEnabled()) {
+        LOG.error("Field Splitter executor is not initialized. Event will be dropped: {0}", geoEvent);
+      } else {
+        LOG.error(
+            "Field Splitter executor is not initialized. Event will be dropped. To see dropped events, enable debug logging for this processor.");
+      }
     }
 
     return null;
@@ -110,8 +115,7 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
       StringBuilder sb = new StringBuilder();
       for (String message : errors)
         sb.append(message).append("\n");
-      throw new ValidationException(
-          LOG.translate(FieldSplitterDefinition.LOG_VALIDATION_FAILED, this.getClass().getName(), sb.toString()));
+      throw new ValidationException(this.getClass().getName() + " validation failed: " + sb.toString());
     }
   }
 
@@ -192,14 +196,14 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
           Field field = sourceGeoEvent.getField(new FieldExpression(fieldToSplit));
           if (field != null) {
             String fieldValueToSplit = (String) field.getValue();
-            LOG.trace("Splitting GeoEvent field {0} with value: {1}", fieldSplitter, fieldValueToSplit);
+            LOG.trace("Splitting GeoEvent field {0} with value: {1}", fieldToSplit, fieldValueToSplit);
             if (fieldValueToSplit != null) {
               fieldValues = fieldValueToSplit.split(fieldSplitter);
             } else {
-              LOG.warn(FieldSplitterDefinition.LOG_SPLIT_FIELD_NULL, fieldToSplit);
+              LOG.warn("Configured split field \"{0}\" has a null value in incoming GeoEvent.", fieldToSplit);
             }
           } else {
-            LOG.warn(FieldSplitterDefinition.LOG_SPLIT_FIELD_NOT_FOUND, fieldToSplit);
+            LOG.warn("Configured split field \"{0}\" was not found in incoming GeoEvent.", fieldToSplit);
           }
 
           if (fieldValues == null) {
@@ -209,7 +213,7 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
 
           int index = 0;
           for (String value : fieldValues) {
-            LOG.trace("Creating split GeoEvent {0} for field {1} with value: {2}", ++index, fieldSplitter, value);
+            LOG.trace("Creating split GeoEvent {0} for field {1} with value: {2}", ++index, fieldToSplit, value);
             geoEventOut.setField(fieldToSplit, value);
             geoEventOut.setProperty(GeoEventPropertyName.TYPE, "event");
             geoEventOut.setProperty(GeoEventPropertyName.OWNER_ID, getId());
@@ -223,13 +227,13 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
               LOG.debug("Sending split GeoEvent {0}: {1}", index, geoEventOut);
               send(geoEventOut);
             } catch (MessagingException e) {
-              LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, geoEventOut);
+              LOG.error("Failed to split GeoEvent: {0}", e, geoEventOut);
             }
           }
         } catch (FieldException e) {
-          LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED_FIELD, e, fieldToSplit, sourceGeoEvent);
+          LOG.error("Failed to split field \"{0}\" in GeoEvent: {1}", e, fieldToSplit, sourceGeoEvent);
         } catch (Exception e) {
-          LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, sourceGeoEvent);
+          LOG.error("Failed to split GeoEvent: {0}", e, sourceGeoEvent);
         }
       }
     }

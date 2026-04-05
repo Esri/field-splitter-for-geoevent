@@ -40,7 +40,7 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
   private static final BundleLogger LOG = BundleLoggerFactory.getLogger(FieldSplitter.class);
   private static final String RESOURCE_PATH = "com/esri/geoevent/processor/field-splitter-processor.properties";
   private static final String BUNDLE_SYMBOLIC_NAME = "com.esri.geoevent.processor.field-splitter-processor";
-
+  
   static final String PROPERTY_FIELD_TO_SPLIT = "fieldToSplit";
   static final String PROPERTY_FIELD_SPLITTER = "fieldSplitter";
 
@@ -62,18 +62,6 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
   private static final String PROCESSOR_NAME = getConfiguredValue(KEY_PROCESSOR_NAME, FALLBACK_PROCESSOR_NAME);
   private static final String PROCESSOR_DOMAIN = getConfiguredValue(KEY_PROCESSOR_DOMAIN, FALLBACK_PROCESSOR_DOMAIN);
 
-  static final String LOG_PROPERTY_DEFINITION_ERROR = "PROPERTY_DEFINITION_ERROR";
-  static final String LOG_RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND";
-  static final String LOG_RESOURCE_LOAD_FAILED = "RESOURCE_LOAD_FAILED";
-  static final String LOG_PROCESSOR_INSTANTIATED = "PROCESSOR_INSTANTIATED";
-  static final String LOG_SERVICE_INSTANTIATED = "SERVICE_INSTANTIATED";
-  static final String LOG_SPLIT_FAILED_FIELD = "SPLIT_FAILED_FIELD";
-  static final String LOG_SPLIT_FAILED = "SPLIT_FAILED";
-  static final String LOG_SPLIT_FIELD_NOT_FOUND = "SPLIT_FIELD_NOT_FOUND";
-  static final String LOG_SPLIT_FIELD_NULL = "SPLIT_FIELD_NULL";
-  static final String LOG_PROCESSOR_NOT_INITIALIZED = "PROCESSOR_NOT_INITIALIZED";
-  static final String LOG_VALIDATION_FAILED = "VALIDATION_FAILED";
-
   private static final String PROCESSOR_LABEL = "${" + BUNDLE_SYMBOLIC_NAME + ".PROCESSOR_LABEL}";
   private static final String PROCESSOR_DESC = "${" + BUNDLE_SYMBOLIC_NAME + ".PROCESSOR_DESC}";
   private static final String PROCESSOR_CONTACT = "${" + BUNDLE_SYMBOLIC_NAME + ".PROCESSOR_CONTACT}";
@@ -91,7 +79,7 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
     }
     catch (PropertyException ex)
     {
-      LOG.error(LOG_PROPERTY_DEFINITION_ERROR, ex);
+      LOG.error("Error creating property definition.", ex);
     }
   }
 
@@ -138,7 +126,7 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
     {
       if (inputStream == null)
       {
-        LOG.warn(LOG_RESOURCE_NOT_FOUND, RESOURCE_PATH);
+        LOG.warn("Defaults resource \"{0}\" was not found. Built-in defaults will be used.", RESOURCE_PATH);
         return properties;
       }
 
@@ -146,7 +134,7 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
     }
     catch (IOException e)
     {
-      LOG.warn(LOG_RESOURCE_LOAD_FAILED, e, RESOURCE_PATH);
+      LOG.warn("Unable to load defaults resource \"{0}\". Built-in defaults will be used.", e, RESOURCE_PATH);
     }
     return properties;
   }

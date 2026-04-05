@@ -39,7 +39,7 @@ public class FieldSplitterService extends GeoEventProcessorServiceBase
   public FieldSplitterService()
   {
     definition = new FieldSplitterDefinition();
-    LOG.info(FieldSplitterDefinition.LOG_SERVICE_INSTANTIATED);
+    LOG.info("FieldSplitterService instantiated.");
   }
 
   @Override

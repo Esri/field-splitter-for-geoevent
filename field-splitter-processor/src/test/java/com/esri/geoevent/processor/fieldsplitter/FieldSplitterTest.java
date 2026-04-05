@@ -71,6 +71,8 @@ class FieldSplitterTest {
     loggerFactoryMock = mockStatic(BundleLoggerFactory.class);
     loggerFactoryMock.when(() -> BundleLoggerFactory.getLogger(any(Class.class)))
         .thenReturn(mockLog);
+    loggerFactoryMock.when(() -> BundleLoggerFactory.getLogger(anyString(), anyString()))
+      .thenReturn(mockLog);
   }
 
   @AfterAll
@@ -87,6 +89,7 @@ class FieldSplitterTest {
     setPrivateField(splitter, "geoEventProducer", producer);
     lenient().when(producer.isConnected()).thenReturn(true);
     lenient().doReturn(new Uri("com.esri.test", "FieldSplitter", "1.0")).when(definition).getUri();
+    lenient().when(mockLog.translate(anyString())).thenReturn("translated");
     lenient().when(mockLog.translate(anyString(), any(Object[].class))).thenReturn("translated");
     clearInvocations(mockLog);
   }
@@ -176,7 +179,7 @@ class FieldSplitterTest {
     newSplitterRunner().run();
 
     verify(producer, never()).send(any());
-    verify(mockLog).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED_FIELD), same(ex), eq("tags"), same(sourceEvent));
+    verify(mockLog).error(eq("Failed to split field \"{0}\" in GeoEvent: {1}"), same(ex), eq("tags"), same(sourceEvent));
   }
 
   @Test
@@ -188,7 +191,7 @@ class FieldSplitterTest {
     newSplitterRunner().run();
 
     verify(producer, times(2)).send(clonedEvent);
-    verify(mockLog, times(2)).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), same(ex), same(clonedEvent));
+    verify(mockLog, times(2)).error(eq("Failed to split GeoEvent: {0}"), same(ex), same(clonedEvent));
   }
 
   @Test
@@ -197,7 +200,7 @@ class FieldSplitterTest {
 
     newSplitterRunner().run();
 
-    verify(mockLog).error(eq(FieldSplitterDefinition.LOG_SPLIT_FAILED), any(RuntimeException.class), same(sourceEvent));
+    verify(mockLog).error(eq("Failed to split GeoEvent: {0}"), any(RuntimeException.class), same(sourceEvent));
   }
 
   // ---- FieldSplitter public method tests ----
