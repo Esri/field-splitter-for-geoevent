@@ -33,9 +33,9 @@ import com.esri.ges.processor.GeoEventProcessorServiceBase;
 
 public class FieldSplitterService extends GeoEventProcessorServiceBase
 {
-  private static final BundleLogger LOG = BundleLoggerFactory.getLogger(FieldSplitterService.class);
+  private static final BundleLogger LOG = BundleLoggerFactory.getLogger(FieldSplitter.class);
   private Messaging messaging;
-  
+
   public FieldSplitterService()
   {
     definition = new FieldSplitterDefinition();

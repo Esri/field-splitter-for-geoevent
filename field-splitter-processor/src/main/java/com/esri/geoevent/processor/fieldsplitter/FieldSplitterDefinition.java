@@ -37,13 +37,13 @@ import com.esri.ges.processor.GeoEventProcessorDefinitionBase;
 
 public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
 {
-  private static final BundleLogger LOG = BundleLoggerFactory.getLogger(FieldSplitterDefinition.class);
+  private static final BundleLogger LOG = BundleLoggerFactory.getLogger(FieldSplitter.class);
   private static final String RESOURCE_PATH = "com/esri/geoevent/processor/field-splitter-processor.properties";
   private static final String BUNDLE_SYMBOLIC_NAME = "com.esri.geoevent.processor.field-splitter-processor";
-  
+
   static final String PROPERTY_FIELD_TO_SPLIT = "fieldToSplit";
   static final String PROPERTY_FIELD_SPLITTER = "fieldSplitter";
-  
+
   private static final String KEY_DEFAULT_FIELD_TO_SPLIT = "default.fieldToSplit";
   private static final String KEY_DEFAULT_FIELD_SPLITTER = "default.fieldSplitter";
   private static final String KEY_PROCESSOR_VERSION = "PROCESSOR_VERSION";
@@ -54,14 +54,14 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
   private static final String FALLBACK_PROCESSOR_VERSION = "10.6.0";
   private static final String FALLBACK_PROCESSOR_NAME = "FieldSplitter";
   private static final String FALLBACK_PROCESSOR_DOMAIN = "com.esri.geoevent.processor";
-  
+
   private static final Properties DEFAULTS = loadDefaults();
   private static final String DEFAULT_FIELD_TO_SPLIT = getConfiguredValue(KEY_DEFAULT_FIELD_TO_SPLIT, FALLBACK_FIELD_TO_SPLIT);
   private static final String DEFAULT_FIELD_SPLITTER = getConfiguredValue(KEY_DEFAULT_FIELD_SPLITTER, FALLBACK_FIELD_SPLITTER);
   private static final String PROCESSOR_VERSION = getConfiguredValue(KEY_PROCESSOR_VERSION, FALLBACK_PROCESSOR_VERSION);
   private static final String PROCESSOR_NAME = getConfiguredValue(KEY_PROCESSOR_NAME, FALLBACK_PROCESSOR_NAME);
   private static final String PROCESSOR_DOMAIN = getConfiguredValue(KEY_PROCESSOR_DOMAIN, FALLBACK_PROCESSOR_DOMAIN);
-  
+
   static final String LOG_PROPERTY_DEFINITION_ERROR = "${" + BUNDLE_SYMBOLIC_NAME + ".PROPERTY_DEFINITION_ERROR}";
   static final String LOG_RESOURCE_NOT_FOUND = "${" + BUNDLE_SYMBOLIC_NAME + ".RESOURCE_NOT_FOUND}";
   static final String LOG_RESOURCE_LOAD_FAILED = "${" + BUNDLE_SYMBOLIC_NAME + ".RESOURCE_LOAD_FAILED}";
@@ -69,6 +69,9 @@ public class FieldSplitterDefinition extends GeoEventProcessorDefinitionBase
   static final String LOG_SERVICE_INSTANTIATED = "${" + BUNDLE_SYMBOLIC_NAME + ".SERVICE_INSTANTIATED}";
   static final String LOG_SPLIT_FAILED_FIELD = "${" + BUNDLE_SYMBOLIC_NAME + ".SPLIT_FAILED_FIELD}";
   static final String LOG_SPLIT_FAILED = "${" + BUNDLE_SYMBOLIC_NAME + ".SPLIT_FAILED}";
+  static final String LOG_SPLIT_FIELD_NOT_FOUND = "${" + BUNDLE_SYMBOLIC_NAME + ".SPLIT_FIELD_NOT_FOUND}";
+  static final String LOG_SPLIT_FIELD_NULL = "${" + BUNDLE_SYMBOLIC_NAME + ".SPLIT_FIELD_NULL}";
+  static final String LOG_PROCESSOR_NOT_INITIALIZED = "${" + BUNDLE_SYMBOLIC_NAME + ".PROCESSOR_NOT_INITIALIZED}";
   static final String LOG_VALIDATION_FAILED = "${" + BUNDLE_SYMBOLIC_NAME + ".VALIDATION_FAILED}";
 
   private static final String PROCESSOR_LABEL = "${" + BUNDLE_SYMBOLIC_NAME + ".PROCESSOR_LABEL}";

@@ -20,7 +20,7 @@
 
     <properties>
         <revision>10.9.0</revision>
-        <project.release>11</project.release>
+        <project.release>9</project.release>
         <fieldsplitter.default.fieldToSplit>GeoTagged</fieldsplitter.default.fieldToSplit>
         <fieldsplitter.default.fieldSplitter>,</fieldsplitter.default.fieldSplitter>
 

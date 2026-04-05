@@ -70,20 +70,29 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
   public void afterPropertiesSet() {
     fieldToSplit = getProperty(FieldSplitterDefinition.PROPERTY_FIELD_TO_SPLIT).getValueAsString();
     fieldSplitter = getProperty(FieldSplitterDefinition.PROPERTY_FIELD_SPLITTER).getValueAsString();
-
+    LOG.debug("Field to Split: {0}", fieldToSplit);
+    LOG.debug("Field Splitter: {0}", fieldSplitter);
     executor = Executors.newFixedThreadPool(10);
+    LOG.trace("Initialized Field Splitter executor service: {0}", executor);
   }
 
   @Override
   public void setId(String id) {
     super.setId(id);
     geoEventProducer = messaging.createGeoEventProducer(new EventDestination(id + ":event"));
+    LOG.trace("Created GeoEventProducer: {0}", geoEventProducer);
   }
 
   @Override
   public GeoEvent process(GeoEvent geoEvent) throws Exception {
-    GeoEventSplitter splitter = new GeoEventSplitter(geoEvent);
-    executor.execute(splitter);
+    if (executor != null) {
+      if (geoEvent != null) {
+        GeoEventSplitter splitter = new GeoEventSplitter(geoEvent);
+        executor.execute(splitter);
+      }
+    } else {
+      LOG.error(FieldSplitterDefinition.LOG_PROCESSOR_NOT_INITIALIZED);
+    }
 
     return null;
   }
@@ -135,7 +144,7 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
 
   @Override
   public void init() throws MessagingException {
-    ;
+    // no-op - producer is initialized in setId() callback to ensure unique event destination per processor instance
   }
 
   @Override
@@ -145,19 +154,21 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
 
   @Override
   public void setup() throws MessagingException {
-    ;
+    // no-op - producer is initialized in setId() callback to ensure unique event destination per processor instance
   }
 
   @Override
   public void update(Observable o, Object arg) {
-    ;
+    // no-op - not maintaining any internal state based on sent events
   }
 
   @Override
   public void shutdown() {
-    if (executor != null) {
-      executor.shutdown();
-      while (!executor.isTerminated()) {
+    ExecutorService executorToShutdown = executor;
+    executor = null;
+    if (executorToShutdown != null) {
+      executorToShutdown.shutdown();
+      while (!executorToShutdown.isTerminated()) {
       }
       executor = null;
     }
@@ -172,46 +183,54 @@ public class FieldSplitter extends GeoEventProcessorBase implements GeoEventProd
 
     @Override
     public void run() {
-      if (geoEventProducer == null)
-        return;
+      LOG.trace("Running GeoEventSplitter for GeoEvent: {0}", sourceGeoEvent);
+      if (geoEventProducer != null) {
+        String[] fieldValues = null;
+        try {
+          GeoEvent geoEventOut = (GeoEvent) sourceGeoEvent.clone();
 
-      String[] fieldValues = null;
-      try {
-        GeoEvent geoEventOut = (GeoEvent) sourceGeoEvent.clone();
-
-        Field field = sourceGeoEvent.getField(new FieldExpression(fieldToSplit));
-        if (field != null) {
-          String fieldValueToSplit = (String) field.getValue();
-          if (fieldValueToSplit != null) {
-            fieldValues = fieldValueToSplit.split(fieldSplitter);
-          }
-        }
-
-        if (fieldValues == null) {
-          fieldValues = new String[1];
-          fieldValues[0] = null;
-        }
-
-        for (String value : fieldValues) {
-          geoEventOut.setField(fieldToSplit, value);
-          geoEventOut.setProperty(GeoEventPropertyName.TYPE, "event");
-          geoEventOut.setProperty(GeoEventPropertyName.OWNER_ID, getId());
-          geoEventOut.setProperty(GeoEventPropertyName.OWNER_URI, definition.getUri());
-          for (Map.Entry<GeoEventPropertyName, Object> property : geoEventOut.getProperties()) {
-            if (!geoEventOut.hasProperty(property.getKey()))
-              geoEventOut.setProperty(property.getKey(), property.getValue());
+          Field field = sourceGeoEvent.getField(new FieldExpression(fieldToSplit));
+          if (field != null) {
+            String fieldValueToSplit = (String) field.getValue();
+            LOG.trace("Splitting GeoEvent field {0} with value: {1}", fieldSplitter, fieldValueToSplit);
+            if (fieldValueToSplit != null) {
+              fieldValues = fieldValueToSplit.split(fieldSplitter);
+            } else {
+              LOG.warn(FieldSplitterDefinition.LOG_SPLIT_FIELD_NULL, fieldToSplit);
+            }
+          } else {
+            LOG.warn(FieldSplitterDefinition.LOG_SPLIT_FIELD_NOT_FOUND, fieldToSplit);
           }
 
-          try {
-            geoEventProducer.send(geoEventOut);
-          } catch (MessagingException e) {
-            LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, sourceGeoEvent);
+          if (fieldValues == null) {
+            fieldValues = new String[1];
+            fieldValues[0] = null;
           }
+
+          int index = 0;
+          for (String value : fieldValues) {
+            LOG.trace("Creating split GeoEvent {0} for field {1} with value: {2}", ++index, fieldSplitter, value);
+            geoEventOut.setField(fieldToSplit, value);
+            geoEventOut.setProperty(GeoEventPropertyName.TYPE, "event");
+            geoEventOut.setProperty(GeoEventPropertyName.OWNER_ID, getId());
+            geoEventOut.setProperty(GeoEventPropertyName.OWNER_URI, definition.getUri());
+            for (Map.Entry<GeoEventPropertyName, Object> property : geoEventOut.getProperties()) {
+              if (!geoEventOut.hasProperty(property.getKey()))
+                geoEventOut.setProperty(property.getKey(), property.getValue());
+            }
+
+            try {
+              LOG.debug("Sending split GeoEvent {0}: {1}", index, geoEventOut);
+              send(geoEventOut);
+            } catch (MessagingException e) {
+              LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, geoEventOut);
+            }
+          }
+        } catch (FieldException e) {
+          LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED_FIELD, e, fieldToSplit, sourceGeoEvent);
+        } catch (Exception e) {
+          LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, sourceGeoEvent);
         }
-      } catch (FieldException e) {
-        LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED_FIELD, e, fieldToSplit, sourceGeoEvent);
-      } catch (Exception e) {
-        LOG.error(FieldSplitterDefinition.LOG_SPLIT_FAILED, e, sourceGeoEvent);
       }
     }
   }
